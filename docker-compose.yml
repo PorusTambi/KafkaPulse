@@ -1,0 +1,57 @@
+services:
+  kafka:
+    # We use the official Apache Kafka image (latest 3.x series with KRaft)
+    image: apache/kafka:3.7.0
+    container_name: KafkaPulse-broker
+    ports:
+      - "9092:9092"
+    environment:
+      # 1. Identity
+      KAFKA_NODE_ID: 1
+      # Tell Kafka to be BOTH the brain (controller) and the muscle (broker)
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      # A unique ID for the cluster (required for KRaft)
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      
+      # 2. The Listeners (The Physical Doors)
+      # PLAINTEXT_HOST: Port 9092 for your Mac
+      # CONTROLLER: Port 9093 for KRaft internal traffic
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENERS: 'PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093'
+
+      # 3. The Advertised Listeners (The Business Card)
+      # This is crucial! It tells clients outside Docker (your Mac) to use localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT_HOST://localhost:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT_HOST'
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      KAFKA_LOG_DIRS: '/var/lib/kafka/data'
+    volumes:
+      # Save the Kafka data to your local hard drive so it survives restarts
+      - ./kafka_data:/var/lib/kafka/data
+
+
+
+#YAML is a simple text based indentation format used for defining configurations
+
+#Command to start/stop this file having configurations 
+#docker compose up -d 
+#docker compose down
+
+#To remove all containers, networks, and volumes defined in the docker-compose.yml file
+#docker compose down -v
+#-v deletes volumes and data as well
+
+#To check logs
+#docker compose logs -f
+
+#To remove an image 
+#docker rmi apache/kafka:latest
+

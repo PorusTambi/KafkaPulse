@@ -1,0 +1,16 @@
+{
+  "name": "kafkapulse",
+  "version": "1.0.0",
+  "description": "Real time Event Analytics and Fraud Detection using Kafka",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Porus Tambi",
+  "license": "ISC",
+  "dependencies": {
+    "kafkajs": "^2.2.4"
+  }
+}
