@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Kafka Queue</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f4f4f9; }
+    
+    /* Simple 3-column grids for both rows */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+    
+    .box { background: white; border: 2px solid #ccc; padding: 15px; border-radius: 8px; }
+    .box h3 { margin-top: 0; background: #343a40; color: white; padding: 10px; border-radius: 4px; text-align: center; }
+    
+    /* Standard message styling */
+    .msg { background: #e9ecef; padding: 8px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid #007bff; font-family: monospace; }
+    
+    /* Highlight styling for the newest message */
+    .highlight { background: #fff3cd; border-left: 4px solid #ffc107; font-weight: bold; }
+    
+    button { padding: 10px 20px; font-size: 16px; margin-bottom: 20px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px; }
+
+
+      /* Style for the main heading to make it look clean and modern */
+      .feature-title {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Clean, readable font */
+          color: #1e293b; /* Dark slate color for the title text */
+          border-bottom: 3px solid #3b82f6; /* Blue underline to anchor the title */
+          padding-bottom: 8px; /* Space between text and underline */
+          margin-bottom: 20px; /* Space below the heading */
+        }
+      
+        /* Container box for the entire concept summary */
+        .description {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Match heading font */
+          background-color: #f8fafc; /* Very light grey-blue background */
+          border-left: 5px solid #3b82f6; /* Thick blue accent bar on the left */
+          border-radius: 8px; /* Smooth rounded corners */
+          padding: 20px 24px; /* Inner spacing so content doesn't touch edges */
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* Soft shadow for a 3D card effect */
+          max-width: 850px; /* Prevents the box from stretching too wide on big screens */
+        }
+      
+        /* Style for the "Concept Summary:" label */
+        .summary-header {
+          display: block; /* Makes it sit on its own line */
+          font-size: 1.2rem; /* Slightly larger text */
+          color: #0f172a; /* Deep dark color for contrast */
+          margin-bottom: 14px; /* Space before the list starts */
+          text-transform: uppercase; /* All caps for a badge/header feel */
+          letter-spacing: 0.5px; /* Slight spacing between letters */
+        }
+      
+        /* Remove default ugly bullet points and reset padding */
+        .kafka-list {
+          list-style: none; /* Hides standard black dots */
+          padding: 0; /* Removes default left indentation */
+          margin: 0; /* Removes default top/bottom margin */
+        }
+      
+        /* Style each individual list item as a mini card */
+        .kafka-list li {
+          background: #ffffff; /* Pure white background for each point */
+          margin-bottom: 10px; /* Space between each bullet item */
+          padding: 12px 16px; /* Breathing room inside each item */
+          border-radius: 6px; /* Slightly rounded corners */
+          border: 1px solid #e2e8f0; /* Subtle light grey border */
+          color: #334155; /* Soft dark grey for main reading text */
+          line-height: 1.5; /* Comfortable spacing if text wraps to a second line */
+          display: flex; /* Aligns custom icon and text cleanly */
+          align-items: baseline; /* Keeps icon aligned with the first line of text */
+          transition: transform 0.15s ease, border-color 0.15s ease; /* Smooth hover animation */
+        }
+      
+        /* Hover effect so the item pops when the user points at it */
+        .kafka-list li:hover {
+          transform: translateX(5px); /* Nudges the card slightly to the right */
+          border-color: #93c5fd; /* Turns the border light blue on hover */
+        }
+      
+        /* Custom colored arrow before each list item */
+        .kafka-list li::before {
+          content: "▸"; /* Custom triangle bullet icon */
+          color: #3b82f6; /* Bright blue color for the bullet */
+          font-weight: bold; /* Makes the icon thicker */
+          margin-right: 10px; /* Space between the arrow and the text */
+          font-size: 1.1rem; /* Slightly larger arrow */
+        }
+      
+        /* --- HIGHLIGHT BADGE CLASSES FOR KEY TERMS --- */
+      
+        /* Blue highlight for core Kafka entities (Topic, Partition, Key/Value) */
+        .hl-core {
+          background-color: #dbeafe; /* Light blue background */
+          color: #1e40af; /* Dark blue text */
+          padding: 2px 6px; /* Cushion around the word */
+          border-radius: 4px; /* Rounded badge corners */
+          font-weight: 600; /* Semi-bold text */
+        }
+      
+        /* Green highlight for active agents (Producers, Consumers, Concurrency) */
+        .hl-actor {
+          background-color: #dcfce7; /* Light green background */
+          color: #166534; /* Dark green text */
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 600;
+        }
+      
+        /* Purple highlight for algorithms & strategies (Round Robin, Sticky/Batch) */
+        .hl-algo {
+          background-color: #f3e8ff; /* Light purple background */
+          color: #6b21a8; /* Dark purple text */
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 600;
+        }
+      
+        /* Amber/Orange highlight for numbers, configurations, and metrics */
+        .hl-num {
+          background-color: #fef3c7; /* Light yellow/amber background */
+          color: #92400e; /* Dark amber text */
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: monospace; /* Code-like font for numbers and names */
+          font-weight: 700;
+        }
+      
+        /* Special styling for the final call-to-action item */
+        .kafka-list li.cta-item {
+          background: linear-gradient(90deg, #eff6ff, #dbeafe); /* Soft blue gradient */
+          border-color: #60a5fa; /* Stronger blue border */
+          color: #1e3a8a; /* Deep blue text */
+          font-weight: 700; /* Bold text */
+        }
+  </style>
+</head>
+<body>
+
+  <h1>Feature : 1. The Basics - Default No key Partitioning</h1>
+
+  <!-- Feature Description Box -->
+  <div class="description">
+    <!-- Summary Header -->
+    <strong class="summary-header">Concept Summary:</strong>
+  
+    <!-- Formatted and Color-Highlighted Unordered List -->
+    <ul class="kafka-list">
+      <!-- Point 1: Highlight "Topic" as a core concept -->
+      <li>
+        <span>In Kafka, a <span class="hl-core">Topic</span> is just a logical grouping of messages.</span>
+      </li>
+  
+      <!-- Point 2: Highlight "Topic" and "Partitions" -->
+      <li>
+        <span>Inside a <span class="hl-core">Topic</span>, messages are stored in <span class="hl-core">Partitions</span>, which reside on physical or virtual servers where data is stored.</span>
+      </li>
+  
+      <!-- Point 3: Highlight "Producers" and "Consumers" as actors -->
+      <li>
+        <span><span class="hl-actor">Producers</span> produce messages and <span class="hl-actor">Consumers</span> consume them.</span>
+      </li>
+  
+      <!-- Point 4: Highlight "Key" and "Value" -->
+      <li>
+        <span>In Kafka, every message consists of a <span class="hl-core">Key</span> and a <span class="hl-core">Value</span>.</span>
+      </li>
+  
+      <!-- Point 5: Highlight "no key" and "Default Partitioning Strategy" -->
+      <li>
+        <span>If a message has <span class="hl-num">no key</span>, Kafka uses its <span class="hl-algo">Default Partitioning Strategy</span>.</span>
+      </li>
+  
+      <!-- Point 6: Highlight the setup details -->
+      <li>
+        <span>We created a new Topic <span class="hl-num">DefaultPartitioning</span> with <span class="hl-num">1 Producer</span> and <span class="hl-num">3 Consumers</span>.</span>
+      </li>
+  
+      <!-- Point 7: Highlight the partition count -->
+      <li>
+        <span>The topic is configured with <span class="hl-num">3 Partitions</span>.</span>
+      </li>
+  
+      <!-- Point 8: Highlight that keys are omitted -->
+      <li>
+        <span>Right now, we pass <span class="hl-num">no key</span> in our messages.</span>
+      </li>
+  
+      <!-- Point 9: Highlight "Round-Robin" algorithm -->
+      <li>
+        <span>In its simplest conceptual form, it distributes messages to partitions in a <span class="hl-algo">Round-Robin</span> fashion.</span>
+      </li>
+  
+      <!-- Point 10: Highlight the sequence routing -->
+      <li>
+        <span><span class="hl-num">1st</span> goes to Partition 1, <span class="hl-num">2nd</span> to Partition 2, <span class="hl-num">3rd</span> to Partition 3, and then back to <span class="hl-num">1</span>.</span>
+      </li>
+  
+      <!-- Point 11: Highlight "optimizations" -->
+      <li>
+        <span>In reality, this partitioning algorithm includes performance <span class="hl-algo">optimizations</span> (Sticky Partitioning).</span>
+      </li>
+  
+      <!-- Point 12: Highlight "batch size" and "5" -->
+      <li>
+        <span>It uses a <span class="hl-algo">batch size</span> (say <span class="hl-num">5</span>): it sends the first <span class="hl-num">5</span> messages to the first partition, the next <span class="hl-num">5</span> to the next, and so on in a <span class="hl-algo">Round-Robin</span> fashion.</span>
+      </li>
+  
+      <!-- Point 13: Highlight 1-to-1 partition-to-consumer mapping -->
+      <li>
+        <span>Each <span class="hl-core">Partition</span> is assigned to only <span class="hl-num">1 fixed</span> <span class="hl-actor">Consumer</span>.</span>
+      </li>
+  
+      <!-- Point 14: Highlight consumer assignment -->
+      <li>
+        <span>Each <span class="hl-actor">Consumer</span> consumes messages exclusively from its fixed assigned <span class="hl-core">Partition</span>.</span>
+      </li>
+  
+      <!-- Point 15: Highlight "concurrent processing" -->
+      <li>
+        <span>Intuitively, <span class="hl-core">Partitions</span> are the primary mechanism to achieve <span class="hl-actor">concurrent processing</span>.</span>
+      </li>
+  
+      <!-- Point 16: Call to Action styled with a special class -->
+      <li class="cta-item">
+        <span>🚀 Go ahead and give it a try to see it in action!</span>
+      </li>
+    </ul>
+  </div>
+
+  <button onclick="produce()">Produce 1 Message</button>
+
+  <h2>1. Partitions (The Storage)</h2>
+  <div class="grid" id="partitions-view"></div>
+
+  <h2>2. Consumers (The Workers)</h2>
+  <div class="grid" id="consumers-view"></div>
+
+  <script>
+    async function produce() {
+      await fetch('/default-partitioning/api/produce-message', { method: 'POST' });
+    }
+
+    async function updateUI() {
+      const res = await fetch('/default-partitioning/api/fetch-state');
+      const state = await res.json();
+
+      // 1. Draw the Partitions Row
+      let pHTML = '';
+      for (let i = 0; i < 3; i++) {
+        // If the message is the latest one, add the 'highlight' class
+        let msgs = state.partitions[i].map(m => 
+          `<div class="msg ${m === state.latestTask ? 'highlight' : ''}">${m}</div>`
+        ).join('');
+        
+        pHTML += `<div class="box"><h3>Partition ${i}</h3>${msgs}</div>`;
+      }
+      document.getElementById('partitions-view').innerHTML = pHTML;
+
+      // 2. Draw the Consumers Row
+      let cHTML = '';
+      for (let name of ["Consumer A", "Consumer B", "Consumer C"]) {
+        let data = state.consumers[name];
+        
+        // If the message is the latest one, add the 'highlight' class here too
+        let msgs = data.messages.map(m => 
+          `<div class="msg ${m === state.latestTask ? 'highlight' : ''}">${m}</div>`
+        ).join('');
+        
+        cHTML += `<div class="box">
+                    <h3>${name}</h3>
+                    <p style="text-align: center; color: #666; font-size: 14px;">Assigned Partition ${data.partition}</p>
+                    ${msgs}
+                  </div>`;
+      }
+      document.getElementById('consumers-view').innerHTML = cHTML;
+    }
+
+    // Refresh the UI every 1 second
+    setInterval(updateUI, 2000);
+    updateUI();
+  </script>
+</body>
+</html>

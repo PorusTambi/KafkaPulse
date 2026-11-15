@@ -1,9 +1,16 @@
 # KafkaPulse
-Real time Event Analytics and Fraud Detection using Kafka
+Interactive Learning Project
 
-Kafka Learning project(backend heavy) that helps understand below kafka features intuitively
+# Steps to run this 
+1. Just clone the repo, 
+2. Move in root folder, do chmod +x ./start.sh to make it executable
+3. Finally do npm run dev, rest everything handled  
 
-1. Basics - Brokers, Topics, Partitions, Producers, Consumers
+
+# Kafka Learning project(backend heavy) that helps understand below kafka features intuitively
+
+1. The Basics - Default No key Partitioning
+    Learn the basics topics, producer, consumer, partitions default partitioning by experiencing it
 
 2. Consumer groups
 
@@ -32,5 +39,7 @@ Kafka Learning project(backend heavy) that helps understand below kafka features
 14. Consumer retries
 
 15. send messages in batch
-16.Retention policies
-17.exactly once delivery 
+
+16. Retention policies
+
+17. exactly once delivery 
