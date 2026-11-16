@@ -1,5 +1,5 @@
 // we maintain KafkaState in memory for now
-const KafkaState = {
+const KafkaState1 = {
     //3 partitions at start, so we have 3 indexes
     partitions: { 0: [], 1: [], 2: [] },
 
@@ -15,4 +15,4 @@ const KafkaState = {
     taskCounter: 0, // Counter to generate unique task names
   }
   
- export default KafkaState 
+ export default KafkaState1 

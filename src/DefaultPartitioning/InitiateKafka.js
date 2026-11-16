@@ -1,6 +1,5 @@
 //Initiate Kafka for understanding the given feature
 
-import KafkaAdmin from "../KafkaSdk/KafkaAdmin.js";
 import KafkaClient from "../KafkaSdk/KafkaClient.js";
 import APP_CONSTANTS from "../APP_CONSTANTS.js";
 import KafkaState from "./KafkaState.js";
@@ -18,17 +17,13 @@ async function InitiateKafka() {
 //./opt/kafka/bin/kafka-topics.sh --create --topic system-events --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 
 
-//here we will create topics using admin client
-//we create 3 partitions at start    
-await KafkaAdmin.createTopics({
-    topics:[
-      {topic:TOPIC_NAMES.DEFAULT_PARTITIONING, numPartitions:3}
-    ]
-  })
-  
+//here we already created topic with 3 partitions using admin client in file KafkaClient.js
   
   //create and connect producer which will send messages
-  const producer = KafkaClient.producer();
+  const producer = KafkaClient.producer({
+    allowAutoTopicCreation:false //auto topic creation is disabled, we will create topics using admin client
+  })
+  
   await producer.connect();
   
   
@@ -73,8 +68,8 @@ const consumerMessageHandler = (consumerName) => {
         KafkaState.latestTask = task;                             // Flag for yellow highlight
 
       console.log(`Topic: ${topic}, Partition: ${partition}], ConsumerName: ${consumerName}, Message: ${task}`);
-    };
-};
+    }
+}
  
 
 export default InitiateKafka;

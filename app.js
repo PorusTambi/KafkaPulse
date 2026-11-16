@@ -3,8 +3,11 @@ import express from 'express';
 // We import path and fileURLToPath to tell Express where our EJS HTML files live
 import path from 'path';
 import { fileURLToPath } from 'url';
+import APP_CONSTANTS from './src/APP_CONSTANTS.js';
 
+const {COLORS}=APP_CONSTANTS
 import DefaultPartitioningRouter from './src/DefaultPartitioning/Router.js';
+import KeyedOrderedPartitioningRouter from './src/KeyedOrderedPartitioning/Router.js';
 
 console.log('\n⏳ Wait for the Application to started ...\n')
 
@@ -28,6 +31,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/default-partitioning', DefaultPartitioningRouter);
+app.use('/keyed-ordered-partitioning', KeyedOrderedPartitioningRouter);
+
 
 
 //global error handler
@@ -48,8 +53,11 @@ app.use(function (err, req, res, next) {
 
 // Finally, we start the Express server and initialize Kafka
 app.listen(3000, async () => {
-  console.log('\n---Starting Application---\n');
-  console.log('🚀 Server started successfully on http://localhost:3000');
-  console.log('\n---Application is ready to use---\n');
+  console.log(`\n${COLORS.bright}${COLORS.cyan}========================================================${COLORS.reset}`);
+  console.log(`${COLORS.bgBlue}${COLORS.bright}${COLORS.white}  ⚡ STARTING APPLICATION...                              ${COLORS.reset}`);
+  console.log(`${COLORS.bright}${COLORS.green}  🚀 Server started successfully on ${COLORS.yellow}http://localhost:3000${COLORS.reset}`);
+  console.log(`${COLORS.bright}${COLORS.cyan}  ✅ Application is ready to use!${COLORS.reset}`);
+  console.log(`${COLORS.bright}${COLORS.green}  🚀 Go to ${COLORS.yellow}http://localhost:3000${COLORS.reset} ${COLORS.bright}${COLORS.green}in your browser to see the app in action${COLORS.reset}`);
+  console.log(`${COLORS.bright}${COLORS.cyan}========================================================${COLORS.reset}\n`);
 });
 
