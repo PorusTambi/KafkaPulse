@@ -11,6 +11,7 @@ import DefaultPartitioningRouter from './src/DefaultPartitioning/Router.js';
 import KeyedOrderedPartitioningRouter from './src/KeyedOrderedPartitioning/Router.js';
 import ConsumerGroupsRouter from './src/ConsumerGroups/Router.js';
 import RebalancingRouter from './src/Rebalancing/Router.js';
+import ResumingMessagesRouter from './src/ResumingMessages/Router.js';
 
 console.log('\n⏳ Wait for the Application to started ...\n')
 
@@ -37,6 +38,7 @@ app.use('/default-partitioning', DefaultPartitioningRouter)
 app.use('/keyed-ordered-partitioning', KeyedOrderedPartitioningRouter)
 app.use('/consumer-groups', ConsumerGroupsRouter)
 app.use('/rebalancing', RebalancingRouter)
+app.use('/resuming-messages', ResumingMessagesRouter)
 
 
 //global error handler

@@ -28,7 +28,8 @@ await KafkaAdmin.createTopics({
         { topic: TOPIC_NAMES.DEFAULT_PARTITIONING, numPartitions: 3 },
         { topic: TOPIC_NAMES.KEYED_ORDERED_PARTITIONING, numPartitions: 2 },
         { topic: TOPIC_NAMES.CONSUMER_GROUPS, numPartitions: 2 },
-        { topic: TOPIC_NAMES.REBALANCING, numPartitions: 2 }
+        { topic: TOPIC_NAMES.REBALANCING, numPartitions: 2 },
+        { topic: TOPIC_NAMES.RESUMING_MESSAGES, numPartitions: 1 }
     ]
 })
 
