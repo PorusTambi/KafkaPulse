@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kafka Pulse: Fault Tolerance (Rebalancing)</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; padding: 20px; max-width: 1100px; margin: 0 auto; }
+    h1, h2 { color: #2c3e50; }
+    
+    /* Concept Summary Block - Standard Simple Style */
+    .summary { background: #e8f4f8; border-left: 5px solid #3498db; padding: 15px 20px; border-radius: 5px; margin-bottom: 30px; }
+    .summary ul { margin: 10px 0 0 0; padding-left: 20px; }
+    .summary li { margin-bottom: 8px; line-height: 1.5; font-size: 15px; }
+
+    /* Layout Grids */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+    
+    /* Box Styles */
+    .box { background: white; padding: 15px; border-radius: 8px; border: 2px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .box h3 { margin-top: 0; text-align: center; background: #343a40; color: white; border-radius: 4px; padding-bottom: 10px; padding-top: 10px; font-size: 16px; }
+    
+    /* Consumer Group Container */
+    .group-container { background: #e9ecef; border: 2px dashed #adb5bd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .group-title { text-align: center; font-weight: bold; color: #495057; margin-top: 0; margin-bottom: 20px; font-size: 18px; }
+
+    /* Messages & Highlights */
+    .msg { background: #f8f9fa; border: 1px solid #ddd; padding: 8px; margin-bottom: 5px; border-radius: 4px; border-left: 4px solid #007bff; font-family: monospace; font-size: 14px; }
+    .msg.highlight { background: #fff3cd; border-color: #ffeeba; border-left: 4px solid #ffc107; font-weight: bold; }
+    
+    /* UI Elements */
+    .btn-group { display: flex; gap: 15px; margin-bottom: 30px; justify-content: center; }
+    button { background: #28a745; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #218838; }
+    button:disabled { background: #bdc3c7; cursor: not-allowed; }
+    
+    /* Danger button for disconnecting */
+    .btn-danger { background: #dc3545; }
+    .btn-danger:hover { background: #c82333; }
+    
+    .assigned-label { text-align: center; color: #666; font-size: 13px; margin-top: -5px; margin-bottom: 10px; font-weight: bold; }
+    .empty { text-align: center; color: #aaa; font-style: italic; font-size: 13px; }
+    
+    /* Offline State */
+    .offline-box { background: #e9ecef; border-color: #adb5bd; opacity: 0.7; }
+    .offline-box h3 { background: #6c757d; }
+    .offline-text { color: #6c757d; font-weight: bold; text-align: center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Feature 12: Fault Tolerance (Rebalancing)</h1>
+
+  <div class="summary">
+    <h2>Concept Summary</h2>
+    <ul>
+      <li>Kafka tracks reading bookmarks (Offsets) at the <strong>Consumer Group</strong> level, not the individual worker level.</li>
+      <li>Consumers constantly send <strong>Heartbeats</strong> to the Group Coordinator to say "I'm alive."</li>
+      <li>If a worker crashes or is disconnected, the heartbeats stop, triggering a <strong>Rebalance</strong>.</li>
+      <li>The Coordinator revokes the dead worker's Partition and reassigns it to a surviving worker.</li>
+      <li>The surviving worker looks at the Group's last saved Offset and resumes seamlessly without losing any data.</li>
+      <li>🚀 Produce a few messages, disconnect Consumer A, and watch Consumer B take over both partitions!</li>
+    </ul>
+  </div>
+
+  <div class="btn-group">
+    <button id="produce-btn" onclick="produce()">Produce Message (0/8)</button>
+    <button id="disconnect-btn" class="btn-danger" onclick="disconnectA()">Disconnect Consumer A</button>
+  </div>
+
+  <h2>1. Kafka Topic (The Brokers)</h2>
+  <div class="grid-2" id="partitions-view">
+    <!-- Partitions injected here via JS -->
+  </div>
+
+  <h2>2. Consumer Group (The Workers)</h2>
+  <div id="groups-view">
+    <!-- Consumer Group injected here via JS -->
+  </div>
+
+  <script>
+    // Assuming backend routes follow your previous pattern
+    async function produce() {
+      await fetch('/rebalancing/api/produce-message', { method: 'POST' });
+      updateUI(); 
+    }
+
+    async function disconnectA() {
+      await fetch('/rebalancing/api/disconnect-consumerA', { method: 'POST' });
+      
+      // Update UI button to show it was clicked
+      const btn = document.getElementById('disconnect-btn');
+      btn.innerText = "Consumer A Offline";
+      btn.disabled = true;
+      btn.style.background = "#6c757d";
+      
+      updateUI();
+    }
+
+    async function updateUI() {
+      const res = await fetch('/rebalancing/api/fetch-state');
+      const state = await res.json();
+
+      // Check how many messages have been produced
+      const totalProduced = state.taskCounter !== undefined 
+        ? state.taskCounter 
+        : (state.partitions[0].length + state.partitions[1].length);
+
+      // Update Producer Button State
+      const btn = document.getElementById('produce-btn');
+      if (totalProduced >= 8) {
+        btn.disabled = true;
+        btn.innerText = "Max Messages Reached (8/8)";
+      } else {
+        btn.disabled = false;
+        btn.innerText = `Produce Message (${totalProduced}/8)`;
+      }
+
+      // 1. Draw the 2 Partitions Row
+      let pHTML = '';
+      for (let i = 0; i < 2; i++) {
+        let msgs = state.partitions[i].map(m => 
+          `<div class="msg ${m === state.latestTask ? 'highlight' : ''}">${m}</div>`
+        ).join('');
+        
+        pHTML += `<div class="box">
+                    <h3>Partition ${i}</h3>
+                    ${msgs || '<p class="empty">Empty</p>'}
+                  </div>`;
+      }
+      document.getElementById('partitions-view').innerHTML = pHTML;
+
+      // 2. Draw the Consumer Group
+      let consumersHTML = '';
+      
+      // Check if Consumer A is explicitly marked disconnected in state, 
+      // or if you want to rely on the disconnect button state.
+      const isConsumerADisconnected = document.getElementById('disconnect-btn').disabled;
+
+      for (let name of ["Consumer A", "Consumer B"]) {
+        let data = state.consumers[name];
+        
+        if (name === "Consumer A" && isConsumerADisconnected) {
+          // Render Consumer A as greyed out
+          consumersHTML += `<div class="box offline-box">
+                              <h3>${name} (OFFLINE)</h3>
+                              <p class="offline-text">Disconnected from Group</p>
+                            </div>`;
+        } else {
+          let msgs = data.messages.map(m => 
+            `<div class="msg ${m === state.latestTask ? 'highlight' : ''}">${m}</div>`
+          ).join('');
+
+          // If A is offline, B handles both partitions (0 and 1)
+          let assignedText = data.partition;
+          if (name === "Consumer B" && isConsumerADisconnected) {
+            assignedText = "0 & 1";
+          }
+
+          consumersHTML += `<div class="box" style="border: 2px solid #ccc;">
+                              <h3 style="background: #17a2b8;">${name}</h3>
+                              <p class="assigned-label">Assigned Partition: ${assignedText}</p>
+                              ${msgs || '<p class="empty">Waiting...</p>'}
+                            </div>`;
+        }
+      }
+
+      // Wrap the consumers in the dashed group container
+      let gHTML = `<div class="group-container">
+                    <h3 class="group-title">Analytics Worker Group</h3>
+                    <div class="grid-2" style="margin-bottom: 0;">
+                      ${consumersHTML}
+                    </div>
+                  </div>`;
+
+      document.getElementById('groups-view').innerHTML = gHTML;
+    }
+
+    // Refresh the UI every 2 seconds
+    setInterval(updateUI, 2000);
+    updateUI();
+  </script>
+</body>
+</html>

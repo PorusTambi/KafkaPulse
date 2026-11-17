@@ -1,7 +1,8 @@
-const TOPIC_NAMES={
+const TOPIC_NAMES = {
     'DEFAULT_PARTITIONING': 'DefaultPartitioning',
     'KEYED_ORDERED_PARTITIONING': 'KeyedOrderedPartitioning',
-    'CONSUMER_GROUPS':'ConsumerGroups'
+    'CONSUMER_GROUPS': 'ConsumerGroups',
+    'REBALANCING': 'Rebalancing'
 }
 
 const COLORS = {
@@ -12,7 +13,7 @@ const COLORS = {
     yellow: "\x1b[33m",     // Yellow text to highlight the URL
     bgBlue: "\x1b[44m",     // Blue background banner for maximum visibility
     white: "\x1b[37m"       // Crisp white text on colored background
-  }
+}
 
 const APP_CONSTANTS = {
     TOPIC_NAMES,

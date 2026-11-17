@@ -5,11 +5,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import APP_CONSTANTS from './src/APP_CONSTANTS.js';
 
-const {COLORS}=APP_CONSTANTS
+const { COLORS } = APP_CONSTANTS
 
 import DefaultPartitioningRouter from './src/DefaultPartitioning/Router.js';
 import KeyedOrderedPartitioningRouter from './src/KeyedOrderedPartitioning/Router.js';
 import ConsumerGroupsRouter from './src/ConsumerGroups/Router.js';
+import RebalancingRouter from './src/Rebalancing/Router.js';
 
 console.log('\n⏳ Wait for the Application to started ...\n')
 
@@ -35,6 +36,7 @@ app.get('/', (req, res) => {
 app.use('/default-partitioning', DefaultPartitioningRouter)
 app.use('/keyed-ordered-partitioning', KeyedOrderedPartitioningRouter)
 app.use('/consumer-groups', ConsumerGroupsRouter)
+app.use('/rebalancing', RebalancingRouter)
 
 
 //global error handler
