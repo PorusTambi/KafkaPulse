@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kafka Pulse: Consumer Groups</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; padding: 20px; max-width: 1100px; margin: 0 auto; }
+    h1, h2 { color: #2c3e50; }
+    
+    /* Concept Summary Block */
+    .summary { background: #e8f4f8; border-left: 5px solid #3498db; padding: 15px 20px; border-radius: 5px; margin-bottom: 20px; }
+    .summary ul { margin: 10px 0 0 0; padding-left: 20px; }
+    .summary li { margin-bottom: 5px; line-height: 1.4; font-size: 15px; }
+
+    /* Layout Grids */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .consumer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    
+    /* Box Styles */
+    .box { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .box h3 { margin-top: 0; text-align: center; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; font-size: 16px;}
+    
+    /* Consumer Group Container */
+    .group-container { background: #e2e6ea; border: 2px dashed #adb5bd; padding: 15px; border-radius: 8px; }
+    .group-title { text-align: center; font-weight: bold; color: #495057; margin-top: 0; margin-bottom: 15px; font-size: 18px; }
+
+    /* Messages & Highlights */
+    .msg { background: #f9f9f9; border: 1px solid #ddd; padding: 8px; margin-bottom: 8px; border-radius: 5px; font-size: 13px; }
+    .msg.highlight { background: #fff3cd; border-color: #ffeeba; border-left: 4px solid #ffc107; }
+    
+    /* UI Elements */
+    button { background: #3498db; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #2980b9; }
+    button:disabled { background: #bdc3c7; cursor: not-allowed; }
+    .assigned-label { text-align: center; color: #7f8c8d; font-size: 12px; margin-top: -5px; margin-bottom: 10px; font-weight: bold; }
+    .empty { text-align: center; color: #aaa; font-style: italic; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+  <h1>Feature 3: Consumer Groups</h1>
+  
+  <div class="summary">
+    <h2>Concept Summary</h2>
+    <ul>
+      <li><strong>Parallel Processing:</strong> Within the <em>same</em> group, consumers split the partitions. (e.g., Consumer A takes P0, B takes P1).</li>
+      <li><strong>The Radio Broadcast (Pub/Sub):</strong> Multiple <em>different</em> groups (Group 1 & Group 2) act like separate radios. They both receive exact copies of all data.</li>
+      <li><strong>Decoupling:</strong> This allows you to run a Fraud Detection service and a User Analytics service off the exact same Kafka topic simultaneously, without them interfering with each other.</li>
+    </ul>
+  </div>
+
+  <div style="margin-bottom: 20px; text-align: center;">
+    <button id="produce-btn" onclick="produce()">Produce Event</button>
+  </div>
+
+  <h2>Kafka Topic (Brokers)</h2>
+  <div id="partitions-view" class="row">
+    <!-- Partitions injected here via JS -->
+  </div>
+
+  <h2>Consumer Groups (The Subscribed Services)</h2>
+  <div id="groups-view" class="row">
+    <!-- Consumer Groups injected here via JS -->
+  </div>
+
+  <script>
+    // Assuming backend routes are structured for this phase, e.g. /consumer-groups/api/...
+    async function produce() {
+      await fetch('/consumer-groups/api/produce-message', { method: 'POST' });
+      updateUI(); 
+    }
+
+    async function updateUI() {
+      const res = await fetch('/consumer-groups/api/fetch-state');
+      const state = await res.json();
+
+      // Update Producer Button State
+      const btn = document.getElementById('produce-btn');
+      if (state.taskCounter >= 6) {
+        btn.disabled = true;
+        btn.innerText = "Max Events Reached (6/6)";
+      } else {
+        btn.innerText = `Produce Event (${state.taskCounter}/6)`;
+      }
+
+      // 1. Draw the 2 Partitions
+      let pHTML = '';
+      for (let i = 0; i < 2; i++) {
+        // Assuming message format has an 'id' and 'text'. Adjust if it's just a raw string.
+        let msgs = state.partitions[i].map(m => 
+          `<div class="msg ${m.id === state.latestTask ? 'highlight' : ''}">
+             ${m.text}
+           </div>`
+        ).join('');
+        
+        pHTML += `<div class="box">
+                    <h3>Partition ${i}</h3>
+                    ${msgs || '<p class="empty">Waiting for events...</p>'}
+                  </div>`;
+      }
+      document.getElementById('partitions-view').innerHTML = pHTML;
+
+      // 2. Draw the Consumer Groups
+      // We explicitly map your state.consumers structure
+      const groupData = [
+        { id: 1, title: "Group 1 (Fraud Analytics)", consumers: ["Consumer A", "Consumer B"] },
+        { id: 2, title: "Group 2 (Preference Analytics)", consumers: ["Consumer C", "Consumer D"] }
+      ];
+
+      let gHTML = '';
+      groupData.forEach(group => {
+        let consumersHTML = '';
+        
+        // Loop through the consumers inside this specific group
+        group.consumers.forEach(name => {
+          let data = state.consumers[group.id][name];
+          
+          let msgs = data.messages.map(m => 
+            `<div class="msg ${m.id === state.latestTask ? 'highlight' : ''}">
+               ${m.text}
+             </div>`
+          ).join('');
+
+          consumersHTML += `<div class="box">
+                              <h3>${name}</h3>
+                              <p class="assigned-label">Assigned Partition: ${data.partition}</p>
+                              ${msgs || '<p class="empty">Waiting...</p>'}
+                            </div>`;
+        });
+
+        // Wrap the consumers in the distinct grey dashed box
+        gHTML += `<div class="group-container">
+                    <h3 class="group-title">${group.title}</h3>
+                    <div class="consumer-grid">
+                      ${consumersHTML}
+                    </div>
+                  </div>`;
+      });
+
+      document.getElementById('groups-view').innerHTML = gHTML;
+    }
+
+    setInterval(updateUI, 2000);
+    updateUI();
+  </script>
+
+</body>
+</html>

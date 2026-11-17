@@ -1,6 +1,7 @@
 const TOPIC_NAMES={
     'DEFAULT_PARTITIONING': 'DefaultPartitioning',
     'KEYED_ORDERED_PARTITIONING': 'KeyedOrderedPartitioning',
+    'CONSUMER_GROUPS':'ConsumerGroups'
 }
 
 const COLORS = {
