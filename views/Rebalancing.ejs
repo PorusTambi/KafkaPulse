@@ -49,16 +49,14 @@
 </head>
 <body>
 
-  <h1>Feature 12: Fault Tolerance (Rebalancing)</h1>
+  <h1>Feature 4: Fault Tolerance - Rebalancing</h1>
 
   <div class="summary">
     <h2>Concept Summary</h2>
     <ul>
-      <li>Kafka tracks reading bookmarks (Offsets) at the <strong>Consumer Group</strong> level, not the individual worker level.</li>
       <li>Consumers constantly send <strong>Heartbeats</strong> to the Group Coordinator to say "I'm alive."</li>
       <li>If a worker crashes or is disconnected, the heartbeats stop, triggering a <strong>Rebalance</strong>.</li>
       <li>The Coordinator revokes the dead worker's Partition and reassigns it to a surviving worker.</li>
-      <li>The surviving worker looks at the Group's last saved Offset and resumes seamlessly without losing any data.</li>
       <li>🚀 Produce a few messages, disconnect Consumer A, and watch Consumer B take over both partitions!</li>
     </ul>
   </div>
