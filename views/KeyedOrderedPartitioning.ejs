@@ -43,6 +43,8 @@
       <li><strong>The Hashing Rule:</strong> MurmurHash(key)%partitions</li>
       <li><strong>Order is Preserved:</strong> Because a match's events queue up in a single partition, they arrive at the consumer in strict chronological order.</li>
       <li><strong>Consumer Alignment:</strong> Kafka assigns exactly one partition to each consumer in the group, preventing two workers from reading the same match out of order.</li>
+      <li><strong>Pull based model:</strong>A good to know detail is that Kakfa consumer poll for messages regularly, instead of producer directly sending to them.</li>
+      <li><strong>Pull based model:</strong>Pull based model is just a design decision, because if producer directly pushes to consumer, and if consumer is slow messages will be overloaded there.</li>
       <li><strong>Real-World Analogy:</strong> 2 Matches going on India vs NewZealand and Australia vs England, go ahead see what's happening on field</li>
     </ul>
   </div>
