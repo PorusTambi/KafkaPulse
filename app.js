@@ -34,11 +34,18 @@ app.get('/', (req, res) => {
   res.render('home');
 });
 
+app.get('/kafka-vs-db', (req, res) => {
+  // Renders the list of all our Kafka features
+  res.render('kafkaVsDb');
+})
+
+
 app.use('/default-partitioning', DefaultPartitioningRouter)
 app.use('/keyed-ordered-partitioning', KeyedOrderedPartitioningRouter)
 app.use('/consumer-groups', ConsumerGroupsRouter)
 app.use('/rebalancing', RebalancingRouter)
 app.use('/resuming-messages', ResumingMessagesRouter)
+
 
 
 //global error handler

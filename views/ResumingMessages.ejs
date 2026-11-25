@@ -70,6 +70,9 @@
       <li>Because workers are disposable, Offsets are strictly maintained per partition at the <strong>Consumer Group</strong> level.</li>
       <li><em>The Intuition:</em> Think of a team building a brick wall. If Worker A goes home sick, they don't take their progress notebook with them. The progress is marked on a <strong>Manager's Clipboard</strong> bolted to the wall. When a new Worker B arrives, they simply check the clipboard and seamlessly lay the next brick.</li>
       <li>This allows a new consumer to resume reading exactly where the crashed consumer left off, ensuring no data is ever lost.</li>
+      <li>Generally when a message is processed by consumer it auto commits the offset, you can control that too..</li>
+      <li>This is also called at least once delivery as if consumer processed the message but fails to commit offset, then its proceesed again.</li>
+      <li>There is also exactly once delivery that can be achieved through transactions..Look on Kafka docs for that.</li>
     </ul>
   </div>
 
